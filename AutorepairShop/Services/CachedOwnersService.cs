@@ -45,7 +45,7 @@ namespace AutorepairShop.Services
                 if (owners != null)
                 {
                     _memoryCache.Set(cacheKey, owners,
-                    new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(5)));
+                    new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(258)));
                 }
             }
             return owners;

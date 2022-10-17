@@ -23,7 +23,7 @@ namespace AutorepairShop.Services
             {
                 _memoryCache.Set(cacheKey, payments, new MemoryCacheEntryOptions
                 {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(258)
                 });
 
             }
@@ -43,7 +43,7 @@ namespace AutorepairShop.Services
                 if (payments != null)
                 {
                     _memoryCache.Set(cacheKey, payments,
-                    new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(5)));
+                    new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(258)));
                 }
             }
             return payments;
