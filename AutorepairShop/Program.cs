@@ -38,15 +38,15 @@ app.Map("/info", (appBuilder) =>
 {
     appBuilder.Run(async (context) =>
     {
-        // Формирование строки для вывода 
-        string strResponse = "<HTML><HEAD><TITLE>Информация</TITLE></HEAD>" +
+        // Р¤РѕСЂРјРёСЂРѕРІР°РЅРёРµ СЃС‚СЂРѕРєРё РґР»СЏ РІС‹РІРѕРґР° 
+        string strResponse = "<HTML><HEAD><TITLE>info</TITLE></HEAD>" +
         "<META http-equiv='Content-Type' content='text/html; charset=utf-8'/>" +
-        "<BODY><H1>Информация:</H1>";
-        strResponse += "<BR> Сервер: " + context.Request.Host;
-        strResponse += "<BR> Путь: " + context.Request.PathBase;
-        strResponse += "<BR> Протокол: " + context.Request.Protocol;
-        strResponse += "<BR><A href='/'>Главная</A></BODY></HTML>";
-        // Вывод данных
+        "<BODY><H1>РРЅС„РѕСЂРјР°С†РёСЏ:</H1>";
+        strResponse += "<BR> РЎРµСЂРІРµСЂ: " + context.Request.Host;
+        strResponse += "<BR> РџСѓС‚СЊ: " + context.Request.PathBase;
+        strResponse += "<BR> РџСЂРѕС‚РѕРєРѕР»: " + context.Request.Protocol;
+        strResponse += "<BR><A href='/'>Р“Р»Р°РІРЅР°СЏ</A></BODY></HTML>";
+        // Р’С‹РІРѕРґ РґР°РЅРЅС‹С…
         await context.Response.WriteAsync(strResponse);
     });
 });
@@ -56,17 +56,18 @@ app.Map("/owners", (appBuilder) =>
     appBuilder.Run(async (context) =>
     {
         ICachedOwnersService cachedOwner = context.RequestServices.GetService<ICachedOwnersService>();
-        IEnumerable<Owner> owners = cachedOwner.GetOwners("Wilfred");
-        string HtmlString = "<HTML><HEAD><TITLE>Клиент</TITLE></HEAD>" +
+        IEnumerable<Owner> owners = cachedOwner.GetOwners();
+        string HtmlString = "<HTML><HEAD><TITLE>Owner</TITLE></HEAD>" +
         "<META http-equiv='Content-Type' content='text/html; charset=utf-8'/>" +
-        "<BODY><H1>Список клиентов</H1>" +
+        "<BODY><H1>РЎРїРёСЃРѕРє РІР»Р°РґРµР»СЊС†РµРІ Р°РІС‚Рѕ</H1>" +
         "<TABLE BORDER=1>";
         HtmlString += "<TR>";
-        HtmlString += "<TH>Код клиента</TH>";
-        HtmlString += "<TH>Имя клиента</TH>";
-        HtmlString += "<TH>Адрес клиента</TH>";
-        HtmlString += "<TH>Телефон клиента</TH>";
-        HtmlString += "<TH>Скидка клиента</TH>";
+        HtmlString += "<TH>РРјСЏ РІР»Р°РґРµР»СЊС†Р°</TH>";
+        HtmlString += "<TH>Р¤Р°РјРёР»РёСЏ РІР»Р°РґРµР»СЊС†Р°</TH>";
+        HtmlString += "<TH>РћС‚С‡РµСЃС‚РІРѕ РІР»Р°РґРµР»СЊС†Р°</TH>";
+        HtmlString += "<TH>РўРµР»РµС„РѕРЅ РІР»Р°РґРµР»СЊС†Р°</TH>";
+        HtmlString += "<TH>РђРґСЂРµСЃ РІР»Р°РґРµР»СЊС†Р°</TH>";
+        HtmlString += "<TH>MORE PROP</TH>";
         HtmlString += "</TR>";
         foreach (Owner owner in owners)
         {
@@ -80,9 +81,111 @@ app.Map("/owners", (appBuilder) =>
             HtmlString += "</TR>";
         }
         HtmlString += "</TABLE>";
-        HtmlString += "<BR><A href='/'>Главная</A></BR>";
+        HtmlString += "<BR><A href='/'>Р“Р»Р°РІРЅР°СЏ</A></BR>";
         HtmlString += "</BODY></HTML>";
         await context.Response.WriteAsync(HtmlString);
+    });
+});
+
+
+app.Map("/cars", (appBuilder) =>
+{
+    appBuilder.Run(async (context) =>
+    {
+        ICachedCarsService cachedCars = context.RequestServices.GetService<ICachedCarsService>();
+        IEnumerable<Car> cars = cachedCars.GetCars(40);
+        string HtmlString = "<HTML><HEAD><TITLE>Car</TITLE></HEAD>" +
+        "<META http-equiv='Content-Type' content='text/html; charset=utf-8'/>" +
+        "<BODY><H1>РЎРїРёСЃРѕРє Р°РІС‚РѕРјРѕР±РёР»РµР№</H1>" +
+        "<TABLE BORDER=0>";
+        HtmlString += "<TR>";
+        HtmlString += "<TH>РњР°СЂРєР°</TH>";
+        HtmlString += "<TH>РњРѕС‰РЅРѕСЃС‚СЊ</TH>";
+        HtmlString += "<TH>Р¦РІРµС‚</TH>";
+        HtmlString += "<TH>Р“РѕСЃ РЅРѕРјРµСЂ</TH>";
+        HtmlString += "<TH>РљРѕРґ РІР»Р°РґРµР»РµС†Р°</TH>";
+        HtmlString += "<TH>Р“РѕРґ</TH>";
+        HtmlString += "<TH>Р’РРќ</TH>";
+        HtmlString += "<TH>РќРѕРјРµСЂ РґРІРёРіР°С‚РµР»СЏ</TH>";
+        HtmlString += "<TH>Р”Р°С‚Р° РїРѕСЃС‚СѓРїР»РµРЅРёСЏ</TH>";
+        HtmlString += "</TR>";
+        foreach (Car car in cars)
+        {
+            HtmlString += "<TR>";
+            HtmlString += "<TD>" + car.Brand + "</TD>";
+            HtmlString += "<TD>" + car.Power + "</TD>";
+            HtmlString += "<TD>" + car.Color + "</TD>";
+            HtmlString += "<TD>" + car.StateNumber + "</TD>";
+            HtmlString += "<TD>" + car.OwnerId + "</TD>";
+            HtmlString += "<TD>" + car.Year + "</TD>";
+            HtmlString += "<TD>" + car.VIN + "</TD>";
+            HtmlString += "<TD>" + car.EngineNumber + "</TD>";
+            HtmlString += "<TD>" + car.AdmissionDate + "</TD>";
+            HtmlString += "</TR>";
+        }
+        HtmlString += "</TABLE>";
+        HtmlString += "<BR><A href='/'>Р“Р»Р°РІРЅР°СЏ</A></BR>";
+        HtmlString += "</BODY></HTML>";
+        await context.Response.WriteAsync(HtmlString);
+    });
+});
+
+app.Map("/carsearch", (appBuider) =>
+{
+    appBuider.Run(async (context) =>
+    {
+        ICachedCarsService cachedCars = context.RequestServices.GetService<ICachedCarsService>();
+        IEnumerable<Car> cars = cachedCars.GetCars("BMW", 40);
+        string brandStr;
+        if (context.Request.Cookies.TryGetValue("brand", out brandStr)) { }
+        string strResponse = "<HTML><HEAD><TITLE>Cars search</TITLE></HEAD>" +
+        "<META http-equiv='Content-Type' content='text/html; charset=utf-8'/>" +
+        "<BODY><FORM action ='/carsearch' / >" +
+        "РРјСЏ:<BR><INPUT type = 'text' name = 'Brand' value = " + brandStr + ">" +
+        "<BR><BR><INPUT type ='submit' value='РЎРѕС…СЂР°РЅРёС‚СЊ РІ РєСѓРєРё Рё РїРѕРєР°Р·Р°С‚СЊ'></FORM>" +
+        "<TABLE BORDER = 1>";
+        strResponse += "<TH>РњР°СЂРєР°</TH>";
+        strResponse += "<TH>РњРѕС‰РЅРѕСЃС‚СЊ</TH>";
+        strResponse += "<TH>Р¦РІРµС‚</TH>";
+        strResponse += "<TH>Р“РѕСЃ РЅРѕРјРµСЂ</TH>";
+        strResponse += "<TH>РљРѕРґ РІР»Р°РґРµР»РµС†Р°</TH>";
+        strResponse += "<TH>Р“РѕРґ</TH>";
+        strResponse += "<TH>Р’РРќ</TH>";
+        strResponse += "<TH>РќРѕРјРµСЂ РґРІРёРіР°С‚РµР»СЏ</TH>";
+        strResponse += "<TH>Р”Р°С‚Р° РїРѕСЃС‚СѓРїР»РµРЅРёСЏ</TH>";
+        brandStr = context.Request.Query["Brand"];
+        if (brandStr != null)
+        {
+            context.Response.Cookies.Append("Brand", brandStr);
+        }
+        foreach (Car car in cars.Where(i => i.Brand.Trim() == brandStr))
+        {
+            strResponse += "<TR>";
+            strResponse += "<TD>" + car.Brand + "</TD>";
+            strResponse += "<TD>" + car.Power + "</TD>";
+            strResponse += "<TD>" + car.Color + "</TD>";
+            strResponse += "<TD>" + car.StateNumber + "</TD>";
+            strResponse += "<TD>" + car.OwnerId + "</TD>";
+            strResponse += "<TD>" + car.Year + "</TD>";
+            strResponse += "<TD>" + car.VIN + "</TD>";
+            strResponse += "<TD>" + car.EngineNumber + "</TD>";
+            strResponse += "<TD>" + car.AdmissionDate + "</TD>";
+            strResponse += "</TR>";
+        }
+        strResponse += "</TABLE>";
+        strResponse += "<BR><A href='/'>Р“Р»Р°РІРЅР°СЏ</A></BR>";
+        strResponse += "</BODY></HTML>";
+        await context.Response.WriteAsync(strResponse);
+    });
+});
+
+
+//Р—Р°РїРѕРјРёРЅР°РЅРёРµ РІ Session Р·РЅР°С‡РµРЅРёР№, РІРІРµРґРµРЅРЅС‹С… РІ С„РѕСЂРјРµ
+app.Map("/ownersearch", (appBuilder) =>
+{
+    appBuilder.Run(async (context) =>
+    {
+        // РЅР°РґРѕ Р±СѓРґРµС‚ РґРѕРїРёСЃР°С‚СЊ
     });
 });
 
@@ -93,16 +196,16 @@ app.MapGet("/", (context) =>
     //cachedCar.AddCars("BMW");
     ICachedOwnersService cachedOwner = context.RequestServices.GetService<ICachedOwnersService>();
     //cachedOwner.AddOwners("OwnerName");
-    string HtmlString = "<HTML><HEAD><TITLE>autorepar shop asp net</TITLE></HEAD>" +
-    "<META http-equiv='Content-Type' content='text/html; charset=utf-8'/>" +
-    "<BODY><H1>Главная</H1>";
-    HtmlString += "<H2>Данные записаны в кэш сервера</H2>";
-    HtmlString += "<BR><A href='/'>Главная</A></BR>";
-    HtmlString += "<BR><A href='/'>Поиск по заказам</A></BR>";
-    HtmlString += "<BR><A href='/'>Поиск по клиентам</A></BR>";
-    HtmlString += "<BR><A href='/'>Сотрудники</A></BR>";
-    HtmlString += "<BR><A href='/owners'>Владельцы</A></BR>";
-    HtmlString += "<BR><A href='/info'>Данные о сервере</A></BR>";
+    string HtmlString = "<HTML><HEAD><TITLE>autorepair shop</TITLE></HEAD>" +
+                "<META http-equiv='Content-Type' content='text/html; charset=utf-8'/>" +
+                "<BODY><H1>Р“Р»Р°РІРЅР°СЏ</H1>";
+    HtmlString += "<H2>Р”Р°РЅРЅС‹Рµ Р·Р°РїРёСЃР°РЅС‹ РІ РєСЌС€ СЃРµСЂРІРµСЂР°</H2>";
+    HtmlString += "<BR><A href='/'>Р“Р»Р°РІРЅР°СЏ</A></BR>";
+    HtmlString += "<BR><A href='/ownersearch'>РџРѕРёСЃРє РїРѕ РІР»Р°РґРµР»СЊС†Р°Рј</A></BR>";
+    HtmlString += "<BR><A href='/carsearch'>РџРѕРёСЃРє РїРѕ РјР°С€РёРЅР°Рј</A></BR>";
+    HtmlString += "<BR><A href='/cars'>Cars</A></BR>";
+    HtmlString += "<BR><A href='/owners'>Owners</A></BR>";
+    HtmlString += "<BR><A href='/info'>about sever</A></BR>";
     HtmlString += "</BODY></HTML>";
     return context.Response.WriteAsync(HtmlString);
 });
