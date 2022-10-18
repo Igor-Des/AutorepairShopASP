@@ -25,6 +25,9 @@ string connString = builder.Configuration.GetConnectionString("DefaultConnection
 builder.Services.AddDbContext<AutorepairContext>(options => options.UseSqlServer(connString));
 builder.Services.AddMemoryCache();
 
+builder.Services.AddDistributedMemoryCache();// добавляем IDistributedMemoryCache
+builder.Services.AddSession();  // добавляем сервисы сессии
+
 builder.Services.AddScoped<ICachedOwnersService, CachedOwnersService>();
 builder.Services.AddScoped<ICachedCarsService, CachedCarsService>();
 builder.Services.AddScoped<ICachedPaymentsService, CachedPaymentsService>();
@@ -32,7 +35,7 @@ builder.Services.AddScoped<ICachedPaymentsService, CachedPaymentsService>();
 
 var app = builder.Build();
 
-
+app.UseSession();  // добавляем middleware для работы с сессиями
 
 app.Map("/info", (appBuilder) =>
 {
@@ -97,7 +100,7 @@ app.Map("/cars", (appBuilder) =>
         string HtmlString = "<HTML><HEAD><TITLE>Car</TITLE></HEAD>" +
         "<META http-equiv='Content-Type' content='text/html; charset=utf-8'/>" +
         "<BODY><H1>Список автомобилей</H1>" +
-        "<TABLE BORDER=0>";
+        "<TABLE BORDER=1>";
         HtmlString += "<TR>";
         HtmlString += "<TH>Марка</TH>";
         HtmlString += "<TH>Мощность</TH>";
@@ -185,7 +188,44 @@ app.Map("/ownersearch", (appBuilder) =>
 {
     appBuilder.Run(async (context) =>
     {
-        // надо будет дописать
+        string firstName = "";
+        if (context.Session.Keys.Contains("firstName"))
+        {
+            firstName = context.Session.Get<String>("firstName");
+        }
+        ICachedOwnersService cachedOwner = context.RequestServices.GetService<ICachedOwnersService>();
+        IEnumerable<Owner> owners = cachedOwner.GetOwners("Ivan");
+        firstName = Convert.ToString(context.Request.Query["firstName"]);
+        string strResponse = "<HTML><HEAD><TITLE>Owner search firstName</TITLE></HEAD>" +
+        "<META http-equiv='Content-Type' content='text/html; charset=utf-8'/>" +
+        "<BODY><FORM action ='/ownersearch' / >" +
+        "FirstName :<BR><INPUT type = 'text' name = 'firstName' value = " + firstName + ">" +
+        "<BR><BR><INPUT type ='submit' value='Сохранить в сесссию и показать'></FORM>" +
+        "<TABLE BORDER = 1>";
+        strResponse += "<TR>";
+        strResponse += "<TH>Имя владельца</TH>";
+        strResponse += "<TH>Фамилия владельца</TH>";
+        strResponse += "<TH>Отчество владельца</TH>";
+        strResponse += "<TH>Телефон владельца</TH>";
+        strResponse += "<TH>Адрес владельца</TH>";
+        strResponse += "<TH>MORE PROP</TH>";
+        strResponse += "</TR>";
+        foreach (Owner owner in owners.Where(i => i.FirstName.Trim() == firstName))
+        {
+            strResponse += "<TR>";
+            strResponse += "<TD>" + owner.FirstName + "</TD>";
+            strResponse += "<TD>" + owner.MiddleName + "</TD>";
+            strResponse += "<TD>" + owner.LastName + "</TD>";
+            strResponse += "<TD>" + owner.Phone + "</TD>";
+            strResponse += "<TD>" + owner.Address + "</TD>";
+            strResponse += "<TD>" + " AND MORE PROP " + "</TD>";
+            strResponse += "</TR>";
+        }
+        strResponse += "</TABLE>";
+        strResponse += "<BR><A href='/'>Главная</A></BR>";
+        strResponse += "</BODY></HTML>";
+        await context.Response.WriteAsync(strResponse);
+
     });
 });
 
@@ -193,13 +233,13 @@ app.Map("/ownersearch", (appBuilder) =>
 app.MapGet("/", (context) =>
 {
     ICachedCarsService cachedCar = context.RequestServices.GetService<ICachedCarsService>();
-    //cachedCar.AddCars("BMW");
+    cachedCar.AddCars("Nissan"); // как только запускается сервак в куки закидывается Brand авто
     ICachedOwnersService cachedOwner = context.RequestServices.GetService<ICachedOwnersService>();
-    //cachedOwner.AddOwners("OwnerName");
+    cachedOwner.AddOwners("Ivan"); // firstName for owners
     string HtmlString = "<HTML><HEAD><TITLE>autorepair shop</TITLE></HEAD>" +
                 "<META http-equiv='Content-Type' content='text/html; charset=utf-8'/>" +
                 "<BODY><H1>Главная</H1>";
-    HtmlString += "<H2>Данные записаны в кэш сервера</H2>";
+    HtmlString += "<H2>autorepair shop / add data catch</H2>";
     HtmlString += "<BR><A href='/'>Главная</A></BR>";
     HtmlString += "<BR><A href='/ownersearch'>Поиск по владельцам</A></BR>";
     HtmlString += "<BR><A href='/carsearch'>Поиск по машинам</A></BR>";
