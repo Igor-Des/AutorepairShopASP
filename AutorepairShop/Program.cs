@@ -146,7 +146,7 @@ app.Map("/carsearch", (appBuider) =>
         string strResponse = "<HTML><HEAD><TITLE>Cars search</TITLE></HEAD>" +
         "<META http-equiv='Content-Type' content='text/html; charset=utf-8'/>" +
         "<BODY><FORM action ='/carsearch' / >" +
-        "Имя:<BR><INPUT type = 'text' name = 'Brand' value = " + brandStr + ">" +
+        "Марка:<BR><INPUT type = 'text' name = 'Brand' value = " + brandStr + ">" +
         "<BR><BR><INPUT type ='submit' value='save in cookies and show table'></FORM>" +
         "<TABLE BORDER = 1>";
         strResponse += "<TH>Марка</TH>";
