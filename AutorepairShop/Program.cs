@@ -65,12 +65,12 @@ app.Map("/owners", (appBuilder) =>
         "<BODY><H1>Список владельцев авто</H1>" +
         "<TABLE BORDER=1>";
         HtmlString += "<TR>";
-        HtmlString += "<TH>Имя владельца</TH>";
-        HtmlString += "<TH>Фамилия владельца</TH>";
-        HtmlString += "<TH>Отчество владельца</TH>";
-        HtmlString += "<TH>Телефон владельца</TH>";
-        HtmlString += "<TH>Адрес владельца</TH>";
-        HtmlString += "<TH>MORE PROP</TH>";
+        HtmlString += "<TH>Имя</TH>";
+        HtmlString += "<TH>Фамилия</TH>";
+        HtmlString += "<TH>Отчество</TH>";
+        HtmlString += "<TH>Телефон</TH>";
+        HtmlString += "<TH>Адрес</TH>";
+        HtmlString += "<TH>Номер вод.уд.</TH>";
         HtmlString += "</TR>";
         foreach (Owner owner in owners)
         {
@@ -80,7 +80,7 @@ app.Map("/owners", (appBuilder) =>
             HtmlString += "<TD>" + owner.LastName + "</TD>";
             HtmlString += "<TD>" + owner.Phone + "</TD>";
             HtmlString += "<TD>" + owner.Address + "</TD>";
-            HtmlString += "<TD>" + " AND MORE PROP " + "</TD>";
+            HtmlString += "<TD>" + owner.DriverLicenseNumber + "</TD>";
             HtmlString += "</TR>";
         }
         HtmlString += "</TABLE>";
@@ -96,7 +96,7 @@ app.Map("/cars", (appBuilder) =>
     appBuilder.Run(async (context) =>
     {
         ICachedCarsService cachedCars = context.RequestServices.GetService<ICachedCarsService>();
-        IEnumerable<Car> cars = cachedCars.GetCars(40);
+        IEnumerable<Car> cars = cachedCars.GetCars(50);
         string HtmlString = "<HTML><HEAD><TITLE>Car</TITLE></HEAD>" +
         "<META http-equiv='Content-Type' content='text/html; charset=utf-8'/>" +
         "<BODY><H1>Список автомобилей</H1>" +
@@ -133,19 +133,21 @@ app.Map("/cars", (appBuilder) =>
     });
 });
 
+// cookies
 app.Map("/carsearch", (appBuider) =>
 {
     appBuider.Run(async (context) =>
     {
-        ICachedCarsService cachedCars = context.RequestServices.GetService<ICachedCarsService>();
-        IEnumerable<Car> cars = cachedCars.GetCars("BMW", 40);
-        string brandStr;
-        if (context.Request.Cookies.TryGetValue("brand", out brandStr)) { }
+        ICachedCarsService cachedCar = context.RequestServices.GetService<ICachedCarsService>();
+        string brandStr = null;
+        if (context.Request.Cookies.ContainsKey("brand")) { brandStr = context.Request.Cookies["brand"]; }
+        IEnumerable<Car> cars = cachedCar.GetCars(brandStr, 50);
+
         string strResponse = "<HTML><HEAD><TITLE>Cars search</TITLE></HEAD>" +
         "<META http-equiv='Content-Type' content='text/html; charset=utf-8'/>" +
         "<BODY><FORM action ='/carsearch' / >" +
         "Имя:<BR><INPUT type = 'text' name = 'Brand' value = " + brandStr + ">" +
-        "<BR><BR><INPUT type ='submit' value='Сохранить в куки и показать'></FORM>" +
+        "<BR><BR><INPUT type ='submit' value='save in cookies and show table'></FORM>" +
         "<TABLE BORDER = 1>";
         strResponse += "<TH>Марка</TH>";
         strResponse += "<TH>Мощность</TH>";
@@ -183,24 +185,36 @@ app.Map("/carsearch", (appBuider) =>
 });
 
 
-//Запоминание в Session значений, введенных в форме
+// sessions
 app.Map("/ownersearch", (appBuilder) =>
 {
     appBuilder.Run(async (context) =>
     {
-        string firstName = "";
+        ICachedOwnersService cachedOwner = context.RequestServices.GetService<ICachedOwnersService>();
+        string firstName = "m";
         if (context.Session.Keys.Contains("firstName"))
         {
-            firstName = context.Session.Get<String>("firstName");
+            firstName = context.Session.GetString("firstName");
         }
-        ICachedOwnersService cachedOwner = context.RequestServices.GetService<ICachedOwnersService>();
-        IEnumerable<Owner> owners = cachedOwner.GetOwners("Ivan");
-        firstName = Convert.ToString(context.Request.Query["firstName"]);
-        string strResponse = "<HTML><HEAD><TITLE>Owner search firstName</TITLE></HEAD>" +
+        IEnumerable<Owner> owners = cachedOwner.GetOwners();
+       
+        if (Convert.ToString(context.Request.Query["firstName"]) != null)
+        {
+
+            firstName = Convert.ToString(context.Request.Query["firstName"]);
+            context.Session.SetString("firstName", firstName);
+        }
+
+        string strResponse = "<HTML>" +
+        "<HEAD>" +
+            "<TITLE>Owner search firstName</TITLE>" +
+        "</HEAD>" +
         "<META http-equiv='Content-Type' content='text/html; charset=utf-8'/>" +
-        "<BODY><FORM action ='/ownersearch' / >" +
-        "FirstName :<BR><INPUT type = 'text' name = 'firstName' value = " + firstName + ">" +
-        "<BR><BR><INPUT type ='submit' value='Сохранить в сесссию и показать'></FORM>" +
+        "<BODY>" +
+        "<FORM action ='/ownersearch' / >" +
+            "FirstName :<BR><INPUT type = 'text' name = 'firstName' value = " + firstName + ">" +
+            "<INPUT type ='submit' value='save in session and show table'>" +
+        "</FORM>" +
         "<TABLE BORDER = 1>";
         strResponse += "<TR>";
         strResponse += "<TH>Имя владельца</TH>";
@@ -208,7 +222,7 @@ app.Map("/ownersearch", (appBuilder) =>
         strResponse += "<TH>Отчество владельца</TH>";
         strResponse += "<TH>Телефон владельца</TH>";
         strResponse += "<TH>Адрес владельца</TH>";
-        strResponse += "<TH>MORE PROP</TH>";
+        strResponse += "<TH>Номер вод.уд.</TH>";
         strResponse += "</TR>";
         foreach (Owner owner in owners.Where(i => i.FirstName.Trim() == firstName))
         {
@@ -218,14 +232,13 @@ app.Map("/ownersearch", (appBuilder) =>
             strResponse += "<TD>" + owner.LastName + "</TD>";
             strResponse += "<TD>" + owner.Phone + "</TD>";
             strResponse += "<TD>" + owner.Address + "</TD>";
-            strResponse += "<TD>" + " AND MORE PROP " + "</TD>";
+            strResponse += "<TD>" + owner.DriverLicenseNumber + "</TD>";
             strResponse += "</TR>";
         }
         strResponse += "</TABLE>";
         strResponse += "<BR><A href='/'>Главная</A></BR>";
         strResponse += "</BODY></HTML>";
         await context.Response.WriteAsync(strResponse);
-
     });
 });
 
@@ -233,19 +246,18 @@ app.Map("/ownersearch", (appBuilder) =>
 app.MapGet("/", (context) =>
 {
     ICachedCarsService cachedCar = context.RequestServices.GetService<ICachedCarsService>();
-    cachedCar.AddCars("Nissan"); // как только запускается сервак в куки закидывается Brand авто
-    ICachedOwnersService cachedOwner = context.RequestServices.GetService<ICachedOwnersService>();
-    cachedOwner.AddOwners("Ivan"); // firstName for owners
+    cachedCar?.AddCars("Rover"); // как только запускается сервак в куки закидывается бренд авто
+
     string HtmlString = "<HTML><HEAD><TITLE>autorepair shop</TITLE></HEAD>" +
                 "<META http-equiv='Content-Type' content='text/html; charset=utf-8'/>" +
                 "<BODY><H1>Главная</H1>";
-    HtmlString += "<H2>autorepair shop / add data catch</H2>";
+    HtmlString += "<H2>autorepair shop</H2>";
     HtmlString += "<BR><A href='/'>Главная</A></BR>";
-    HtmlString += "<BR><A href='/ownersearch'>Поиск по владельцам</A></BR>";
+    HtmlString += "<BR><A href='/ownersearch'>Поиск владельцев</A></BR>";
     HtmlString += "<BR><A href='/carsearch'>Поиск по машинам</A></BR>";
-    HtmlString += "<BR><A href='/cars'>Cars</A></BR>";
-    HtmlString += "<BR><A href='/owners'>Owners</A></BR>";
-    HtmlString += "<BR><A href='/info'>about sever</A></BR>";
+    HtmlString += "<BR><A href='/cars'>Машины</A></BR>";
+    HtmlString += "<BR><A href='/owners'>Владельцы</A></BR>";
+    HtmlString += "<BR><A href='/info'>Информация о клиенте</A></BR>";
     HtmlString += "</BODY></HTML>";
     return context.Response.WriteAsync(HtmlString);
 });
